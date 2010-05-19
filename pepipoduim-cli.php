@@ -81,8 +81,8 @@ class POProcessor
         $msgstr=array();
         $count=0;
         
-        $size=filesize($inFile);
-        $percent=-1;
+#        $size=filesize($inFile);
+#        $percent=-1;
         
         $state=0; 
 #	echo "going to read $inFile\n";
@@ -438,7 +438,7 @@ if (isset($_GET['download']) && isset($_GET['name']))
     if ($ok)
     {
         header("Content-Type:text/plain");
-        header("Content-Length:".filesize($file));
+#        header("Content-Length:".filesize($file));
         header("Content-Disposition: attachment; filename=\"{$name}\"");
         
         readfile($file);
