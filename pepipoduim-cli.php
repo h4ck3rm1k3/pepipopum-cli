@@ -62,7 +62,7 @@ class POProcessor
      */
     public function setProgressCallback($callback)
     {
-        $this->progressCallback=$callback;
+#        $this->progressCallback=$callback;
     }
 
 
@@ -85,27 +85,38 @@ class POProcessor
         $percent=-1;
         
         $state=0; 
+	echo "going to read $inFile\n";
         $in=fopen($inFile, 'r');
         while (!feof($in))
         {
             $line=trim(fgets($in));
             $pos=ftell($in);
-            $percent_now=round(($pos*100)/$size);
-            if ($percent_now!=$percent)
-            {
-                $percent=$percent_now;
-                $remain='';
-                $elapsed=time()-$this->start;
-                if ($elapsed>=5)
-                {
-                    $total = $elapsed/($percent/100);
-                    $remain=$total-$elapsed;
-                }
+	    if ($pos==0)
+	    {
+		echo "error $pos\n";
+		return ;
+	    }
+#            $percent_now=round(($pos*100)/$size);
+            # if ($percent_now!=$percent)
+            # {
+            #     $percent=$percent_now;
+            #     $remain='';
+            #     $elapsed=time()-$this->start;
+            #     if ($elapsed>=5)
+            #     {
+            #         $total = $elapsed/($percent/100);
+            #         $remain=$total-$elapsed;
+            #     }
                 
-                $this->showProgress($percent,$remain);
-            }
+            #     $this->showProgress($percent,$remain);
+            # }
             
             $match=array();
+
+	    if (preg_match('/^msgctxt /', $line,$match))
+	    {
+		echo "$line\n";
+	    }
             
             switch ($state)
             {
@@ -197,15 +208,15 @@ class POProcessor
     {
         if (is_array($this->progressCallback))
         {
-            $obj=$this->progressCallback[0];
-            $method=$this->progressCallback[1];
+#            $obj=$this->progressCallback[0];
+#            $method=$this->progressCallback[1];
             
-            $obj->$method($percentComplete,$remainingTime);
+ #           $obj->$method($percentComplete,$remainingTime);
         }
         elseif (is_string($this->progressCallback))
         {
-            $func=$this->progressCallback;
-            $func($percentComplete,$remainingTime);
+  #          $func=$this->progressCallback;
+  #          $func($percentComplete,$remainingTime);
         }
     }
     
@@ -259,6 +270,7 @@ class POTranslator extends POProcessor
         $this->srcLanguage=$srcLanguage;    
         $this->targetLanguage=$targetLanguage;    
         
+	echo "going to read $inFile and write $outFile\n";
         $this->fOut=fopen($outFile, 'w');
         if ($this->fOut)
         {
@@ -331,7 +343,7 @@ class POTranslator extends POProcessor
             }
             
             //play nice with google
-            usleep($this->delay * 1000000);
+            usleep($this->delay * 1000);
             
         }
         
@@ -353,27 +365,26 @@ function showProgress($percent,$remainingTime)
     {
         if ($remainingTime<120)
         {
-            $time=sprintf("(%d seconds remaining)",$remainingTime);
+#            $time=sprintf("(%d seconds remaining)",$remainingTime);
         }
         elseif ($remainingTime<60*120)
         {
-            $time=sprintf("(%d minutes remaining)",round($remainingTime/60));
+ #           $time=sprintf("(%d minutes remaining)",round($remainingTime/60));
         }
         else
         {
-            $time=sprintf("(%d hours remaining)",round($remainingTime/3600));
+  #          $time=sprintf("(%d hours remaining)",round($remainingTime/3600));
         }
     }
-    echo '<script language="Javascript">';
-    echo "document.getElementById('info').innerHTML='$percent% complete $time';";
-    echo "</script>\n";
     flush();
 }
 
 function processForm()
 {
-    set_time_limit(86400);
-    
+//    set_time_limit(86400);
+
+    echo "process form\n";
+
     $translator=new POTranslator();
     
     if ($_POST['output']=='html')
@@ -381,7 +392,7 @@ function processForm()
         //we output to a temporary file to allow later download
         echo '<h1>Processing PO file...</h1>';
         echo '<div id="info"></div>';
-        $translator->setProgressCallback('showProgress');
+#        $translator->setProgressCallback('showProgress');
         $outfile = tempnam(sys_get_temp_dir(), 'pepipopum'); 
     }
     else
@@ -390,9 +401,10 @@ function processForm()
         header("Content-Type:text/plain");
         $outfile="php://output";
     }
-    
-    
-    $translator->translate($_FILES['pofile']['tmp_name'], $outfile, 'en', $_POST['language']);
+#    var_dump($argv);
+    $infilename = "php://stdin";
+    echo "processing $infilename\n";
+    $translator->translate($infilename, $outfile, 'en', 'sq');
     
     if ($_POST['output']=='html')
     {
@@ -410,11 +422,8 @@ function processForm()
     
 }
 
-if (isset($_GET['viewsource']))
-{
-    highlight_file($_SERVER['SCRIPT_FILENAME']);
-    exit;
-}
+
+
 
 if (isset($_GET['download']) && isset($_GET['name']))
 {
@@ -443,241 +452,12 @@ if (isset($_GET['download']) && isset($_GET['name']))
     exit;
 }
 
-if (isset($_POST['output']) && ($_POST['output']=='pofile'))
-{
+echo "main \n";
+$_GET['output']="html";
+
+#if (isset($_POST['output']) && ($_POST['output']=='html'))
+#{
     processForm();
-}
-
-?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
-<head>
-<meta http-equiv="Content-type" content="text/html;charset=UTF-8" />
-<title>Pepipopum - Translate PO file with Google Translate</title>
-<style type="text/css">
-
-
-body
-{
-    background:#eeeeee;
-    margin: 0;
-    padding: 0;
-    text-align: center;
-    
-    font-family:Verdana,Arial,Helvetica
-}
-
-#main
-{
-    padding: 3em;
-    margin: 1em auto 1em auto;
-    width: 50em;
-    border:1px solid #dddddd;
-    text-align: left;
-    background:white;
-}
-
-#footer
-{
-    text-align:right;
-    font-size:8pt;
-    color:#888888;
-    border-top:1px solid #888888;
-}
-
-h1
-{
-    margin-top:0;
-}
-
-form
-{
-    background:#dddddd;
-    padding:2em;
-    margin:0 2em 0 2em;
-    
-    -moz-border-radius: 1em;
-    -webkit-border-radius: 1em;
-    border-radius: 1em;
-    
-    font-size:0.8em;
-}
-
-fieldset
-{
-    background:#cccccc;
-    border:1px solid #aaaaaa;
-    margin-bottom:1em;
-    padding:1em;
-    position:relative;
-    
-    -moz-border-radius: 0.5em;
-    -webkit-border-radius: 0.5em;
-    border-radius: 0.5em;
-    
-}
-
-legend
-{
-    background:#aaaaaa;
-    border:0;
-    padding:0 1em 0 1em;
-    margin-left:1em;
-    color:#ffffff;
-    
-    position: absolute;
-    top: -.5em;
-    left: .2em;
-    
-    
-    -moz-border-radius: 0.5em;
-    -webkit-border-radius: 0.5em;
-    border-radius: 0.5em;
-    
-}
-
-</style>
-</head>
-
-<body>
-<div id="main">
-
-<?php
-if (isset($_POST['output']) && ($_POST['output']=='html'))
-{
-    processForm();
-}
+#}
 ?>
 
-<h1>Pepipopum - Translate PO files with Google Translate</h1>
-
-<p>PO files originate from the <a href="http://www.gnu.org/software/gettext/gettext.html">GNU gettext</a>
-tools and can be generated by a wide variety of other localization tools.</p>
-
-<p>Pepipopum allows you to upload a PO file containing English language strings in the <i>msgid</i>, 
-and it uses the <a href="http://code.google.com/apis/ajaxlanguage/">Google Translate API</a> 
-to construct a PO file containing translated equivalents in each corresponding <i>msgstr</i></p>
-
-<p>If the PO file already contains a translation for a given msgid, it will not be translated. This 
-allows you to upload a proof-read PO and just get translations for any new elements.</p>
-
-<form enctype="multipart/form-data" action="index.php" method="post">
-    
-     <fieldset>
-    <legend>Input</legend>
-       <div class="field">
-        <div class="label"><label for="pofile">PO File</label></div>
-        <div class="input"><input id="pofile" name="pofile" type="file" /></div>
-        </div>
-    </fieldset>
-    
-    <fieldset>
-    <legend>Output options</legend>
-
- <div class="field">
-        <div class="label"><label for="language">Target Language</label></div>
-        <div class="input"><select id="language" name="language">
-            <option value="af">Afrikaans</option>
-            <option value="sq">Albanian</option>
-            <option value="ar">Arabic</option>
-            <option value="be">Belarusian</option>
-            <option value="bg">Bulgarian</option>
-            <option value="ca">Catalan</option>
-            <option value="zh-CN">Chinese (Simplified)</option>
-            <option value="zh-TW">Chinese (Traditional)</option>
-            <option value="hr">Croatian</option>
-            <option value="cs">Czech</option>
-            <option value="da">Danish</option>
-            <option value="nl">Dutch</option>
-            <option value="en">English</option>
-            <option value="et">Estonian</option>
-            <option value="tl">Filipino</option>
-            <option value="fi">Finnish</option>
-            <option value="fr">French</option>
-            <option value="gl">Galician</option>
-            <option value="de">German</option>
-            <option value="el">Greek</option>
-            <option value="iw">Hebrew</option>
-            <option value="hi">Hindi</option>
-            <option value="hu">Hungarian</option>
-            <option value="is">Icelandic</option>
-            <option value="id">Indonesian</option>
-            <option value="ga">Irish</option>
-            <option value="it">Italian</option>
-            <option value="ja">Japanese</option>
-            <option value="ko">Korean</option>
-            <option value="lv">Latvian</option>
-            <option value="lt">Lithuanian</option>
-            <option value="mk">Macedonian</option>
-            <option value="ms">Malay</option>
-            <option value="mt">Maltese</option>
-            <option value="no">Norwegian</option>
-            <option value="fa">Persian</option>
-            <option value="pl">Polish</option>
-            <option value="pt">Portuguese</option>
-            <option value="ro">Romanian</option>
-            <option value="ru">Russian</option>
-            <option value="sr">Serbian</option>
-            <option value="sk">Slovak</option>
-            <option value="sl">Slovenian</option>
-            <option value="es">Spanish</option>
-            <option value="sw">Swahili</option>
-            <option value="sv">Swedish</option>
-            <option value="th">Thai</option>
-            <option value="tr">Turkish</option>
-            <option value="uk">Ukrainian</option>
-            <option value="vi">Vietnamese</option>
-            <option value="cy">Welsh</option>
-            <option value="yi">Yiddish</option>
-            </select>
-        </div>
-     </div>
-
-     <div>
-     <input id="output_po" name="output" value="pofile" type="radio"/>
-     <label for="output_po">Output PO File</label>
-     </div>
-     
-     <div>
-     <input id="output_html" name="output" value="html" checked="checked" type="radio"/>
-     <label for="output_html">Output progress meter and then provide a download link</label>
-     </div>
-     </fieldset>
-   
-    <div>
-    <input type="submit" value="Translate File" />
-    </div>
-    
-</form>
-
-<p>You can automate translation by using a tool like <a href="http://curl.haxx.se/">cURL</a> to post a PO file and obtain
-a translated result. For example:</p>
-
-<pre>
-    curl -F pofile=@<i>input-po-filename</i> \
-        -F language=<i>target-language-code</i> \
-        -F output=pofile 
-        http://pepipopum.dixo.net \
-        --output <i>output-po-filename</i> 
-         
-</pre>
-
-
-<p>The <a href="?viewsource">PHP5 source code</a> to this software is available under an 
-<a href="http://www.fsf.org/licensing/licenses/agpl-3.0.html">Affero GPL licence</a>. Please
-note that this installation of Pepipopum introduces a <?php echo PEPIPOPUM_DELAY?> second
-delay between each Google API call to reduce load on this server and to play nice with
-Google. If you want to go faster, you're encouraged to host your own installation.
-
-</p> 
-
-<p>Why is called "Pepipopum"? I just invented a word which had
-'po' in it and was relatively rare on Google! Pronounce it <i>pee-pie-poe-pum</i>.</p>
-
-<p><a href="http://blog.dixo.net/2009/10/24/pepipopum-automatically-translate-po-files-with-google-translate/">Comments and suggestions</a> are welcome.</p>
-<div id="footer">
-<p><a href="http://blog.dixo.net/about">(c)2009 Paul Dixon</a></p>
-</div>
-</div>
-</body>
-</html>
