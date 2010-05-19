@@ -85,7 +85,7 @@ class POProcessor
         $percent=-1;
         
         $state=0; 
-	echo "going to read $inFile\n";
+#	echo "going to read $inFile\n";
         $in=fopen($inFile, 'r');
         while (!feof($in))
         {
@@ -93,7 +93,7 @@ class POProcessor
             $pos=ftell($in);
 	    if ($pos==0)
 	    {
-		echo "error $pos\n";
+#		echo "error $pos\n";
 		return ;
 	    }
 #            $percent_now=round(($pos*100)/$size);
@@ -270,7 +270,7 @@ class POTranslator extends POProcessor
         $this->srcLanguage=$srcLanguage;    
         $this->targetLanguage=$targetLanguage;    
         
-	echo "going to read $inFile and write $outFile\n";
+#	echo "going to read $inFile and write $outFile\n";
         $this->fOut=fopen($outFile, 'w');
         if ($this->fOut)
         {
@@ -383,15 +383,15 @@ function processForm()
 {
 //    set_time_limit(86400);
 
-    echo "process form\n";
+#    echo "process form\n";
 
     $translator=new POTranslator();
     
     if ($_POST['output']=='html')
     {
         //we output to a temporary file to allow later download
-        echo '<h1>Processing PO file...</h1>';
-        echo '<div id="info"></div>';
+#        echo '<h1>Processing PO file...</h1>';
+#        echo '<div id="info"></div>';
 #        $translator->setProgressCallback('showProgress');
         $outfile = tempnam(sys_get_temp_dir(), 'pepipopum'); 
     }
@@ -403,7 +403,7 @@ function processForm()
     }
 #    var_dump($argv);
     $infilename = "php://stdin";
-    echo "processing $infilename\n";
+#    echo "processing $infilename\n";
     $translator->translate($infilename, $outfile, 'en', 'sq');
     
     if ($_POST['output']=='html')
@@ -412,7 +412,7 @@ function processForm()
         $leaf=basename($outfile);
         $name=$_FILES['pofile']['name'];
         
-        echo "Completed - <a href=\"index.php?download=".urlencode($leaf)."&name=".urlencode($name)."\">download your updated po file</a>";
+#        echo "Completed - <a href=\"index.php?download=".urlencode($leaf)."&name=".urlencode($name)."\">download your updated po file</a>";
     }
     else
     {
@@ -447,12 +447,12 @@ if (isset($_GET['download']) && isset($_GET['name']))
     {
         //fail
         header("HTTP/1.0 404 Not Found");
-        echo "The requested pepipopum output file is not available - it may have expired. <a href=\"index.php\">Click here to generate a new one</a>.";
+#        echo "The requested pepipopum output file is not available - it may have expired. <a href=\"index.php\">Click here to generate a new one</a>.";
     }
     exit;
 }
 
-echo "main \n";
+#echo "main \n";
 $_GET['output']="html";
 
 #if (isset($_POST['output']) && ($_POST['output']=='html'))
