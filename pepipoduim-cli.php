@@ -319,11 +319,14 @@ class POTranslator extends POProcessor
             $cmd="curl -e ".escapeshellarg($this->referrer).' '.escapeshellarg($url);
             
             $result=`$cmd`;
+	    error_log("got result $result", 0);
+
             $data=json_decode($result);
             if (is_object($data) && is_object($data->responseData) && isset($data->responseData->translatedText))
             {
                 $output=$data->responseData->translatedText;    
-                
+                error_log("got $output", 0);
+
                 //Google translate mangles placeholders, lets restore them
                 $output=preg_replace('/%\ss/', '%s', $output);
                 $output=preg_replace('/% (\d+) \$ s/', ' %$1\$s', $output);
@@ -343,7 +346,7 @@ class POTranslator extends POProcessor
             }
             
             //play nice with google
-            usleep($this->delay * 1000);
+            usleep($this->delay * 100000);
             
         }
         
