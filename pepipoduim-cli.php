@@ -346,7 +346,7 @@ class POTranslator extends POProcessor
             }
             
             //play nice with google
-            usleep($this->delay * 100000);
+            usleep($this->delay * 1000000);
             
         }
         

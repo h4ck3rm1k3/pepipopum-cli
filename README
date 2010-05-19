@@ -1,1 +1,5 @@
 this is a hack of pepipopdum for running on the command line
+
+example :
+php ~/experiments/translate/pepipoduim-cli.php  < input.po  > output.po
+
